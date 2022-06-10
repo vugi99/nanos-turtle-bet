@@ -1,2 +1,2 @@
 # nanos-turtle-bet
-A simple race gamemode where you bet on a turtle
+# [Assets](https://github.com/vugi99/nanos-turtle-bet-assets)
