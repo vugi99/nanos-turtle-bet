@@ -122,6 +122,7 @@ function Turtle_RoundEnding()
             end
         end
     end
+    Players_Bets = {}
 
     Turtles_Colors = {}
     local turtles_to_spawn = math.random(Min_Racing_Turtles, Max_Racing_Turtles)
@@ -140,9 +141,15 @@ Events.Subscribe("ServerSelectBet", function(ply, turtle_number, bet_value)
     if not ROUND_RUNNING then
         if Turtles_Colors[turtle_number] then
             if not Players_Bets[ply:GetID()] then
-                if Buy(ply, bet_value) then
-                    Players_Bets[ply:GetID()] = {turtle_number, bet_value}
-                    Server.BroadcastChatMessage(ply:GetAccountName() .. " placed a bet of " .. tostring(bet_value) .. " on turtle #" .. tostring(turtle_number) .. ".")
+                if bet_value > 0 then
+                    if Buy(ply, bet_value) then
+                        Players_Bets[ply:GetID()] = {turtle_number, bet_value}
+                        Server.BroadcastChatMessage(ply:GetAccountName() .. " placed a bet of " .. tostring(bet_value) .. " on turtle #" .. tostring(turtle_number) .. ".")
+
+                        if (table_count(Player.GetPairs()) == table_count(Players_Bets)) then
+                            RoundStart()
+                        end
+                    end
                 end
             end
         end

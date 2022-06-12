@@ -8,7 +8,10 @@ GUI = WebUI("Turtle Bet UI", "file:///UI/index.html")
 
 Canvas_Data = {
     Money = nil,
+    Tab_showed = false,
 }
+
+local CurBetOn = 0
 
 Turtles_Canvas = Canvas(
     true,
@@ -26,12 +29,16 @@ Turtles_Canvas:Subscribe("Update", function(self, width, height)
         if turtle_nb then
             local Vector_head_text = Calculate_Turtle_Text_Vector(v:GetLocation())
             if Vector_head_text then
+                local color = Color.WHITE
+                if turtle_nb == CurBetOn then
+                    color = Color.YELLOW
+                end
                 self:DrawText(
                     tostring(turtle_nb),
                     Vector_head_text,
                     FontType.OpenSans,
                     18,
-                    Color.WHITE, -- Doesn't work with other colors under water too ?
+                    color,
                     0,
                     true,
                     true,
@@ -41,6 +48,41 @@ Turtles_Canvas:Subscribe("Update", function(self, width, height)
                     Color.BLACK
                 )
             end
+        end
+    end
+
+    if Canvas_Data.Tab_showed then
+        local Players_Order = {}
+        for k, v in pairs(Player.GetPairs()) do
+            local money = v:GetValue("Money")
+            local insert_at_pos = 1
+            for i2, v2 in ipairs(Players_Order) do
+                if v2:GetValue("Money") < money then
+                    insert_at_pos = i2
+                    break
+                end
+            end
+
+            table.insert(Players_Order, insert_at_pos, v)
+        end
+
+        local cur_loc_on_screen = Vector2D(Client.GetViewportSize().X * 0.5, 150)
+        for i, v in ipairs(Players_Order) do
+            self:DrawText(
+                v:GetAccountName() .. " : " .. tostring(v:GetValue("Money")),
+                cur_loc_on_screen,
+                FontType.OpenSans,
+                16,
+                Color.WHITE,
+                0,
+                true,
+                true,
+                Color(0, 0, 0, 0),
+                Vector2D(),
+                false,
+                Color.BLACK
+            )
+            cur_loc_on_screen = cur_loc_on_screen + Vector2D(0, 25)
         end
     end
 end)
@@ -73,6 +115,8 @@ Events.Subscribe("ShowBetUI", function(turtle_colors)
     GUI:CallEvent("ShowBetFrame", true)
     GUI:SetFocus()
     GUI:BringToFront()
+
+    CurBetOn = 0
 end)
 
 function HideBetUI()
@@ -87,8 +131,11 @@ Events.Subscribe("HideBetUI", HideBetUI)
 GUI:Subscribe("BetSelected", function(turtle_number, bet_value)
     if tonumber(bet_value) then
         if tonumber(bet_value) <= Client.GetLocalPlayer():GetValue("Money") then
-            HideBetUI()
-            Events.CallRemote("ServerSelectBet", math.floor(tonumber(turtle_number)), math.floor(tonumber(bet_value)))
+            if tonumber(bet_value) > 0 then
+                HideBetUI()
+                CurBetOn = math.floor(tonumber(turtle_number))
+                Events.CallRemote("ServerSelectBet", math.floor(tonumber(turtle_number)), math.floor(tonumber(bet_value)))
+            end
         end
     end
 end)
@@ -124,3 +171,13 @@ end)
 if Client.GetLocalPlayer() then
     HandleMoneyValue(Client.GetLocalPlayer():GetValue("Money"))
 end
+
+Input.Register("TAB", "Tab")
+
+Input.Bind("TAB", InputEvent.Pressed, function()
+    Canvas_Data.Tab_showed = true
+end)
+
+Input.Bind("TAB", InputEvent.Released, function()
+    Canvas_Data.Tab_showed = false
+end)

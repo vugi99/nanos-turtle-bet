@@ -16,7 +16,7 @@ Max_Time_For_Segment = 3000
 
 Other_Turtle_Race_Offset = Vector(250, 0, 0)
 
-TimeToBet = 30000
+TimeToBet = 20000
 
 Min_Racing_Turtles = 2
 Max_Racing_Turtles = 8
